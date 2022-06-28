@@ -1,0 +1,50 @@
+/*************************************
+* TEMA COLOR 
+*************************************/
+
+/* 
+* Primary Color:     #0168b3;
+* RGB Color:         rgb(2,24,80);
+*/
+
+/* Text Color */
+.text-primary, .slick-arrow .footer-links a:hover, .dropdown-item:hover , .navbar-nav .nav-link:hover, 
+.navbar-nav .nav-link.active, .section-footer .social a, .lnk-primary, .leftmenu > li.active > a,
+.r-detail-tabs .nav-link.active, .r-detail-tabs .nav-item.show .nav-link, .card-title {color:#0168b3;}
+#loader .loader-svg .path, .back-to-top:hover, .btn-outline-white:hover svg path {stroke:#0168b3;}
+#footer .f-foot .social a {margin-right: 5px;}
+#footer .f-foot .social a svg path, .lnk-primary svg path {fill:#0168b3;}
+
+/* Bakcground Color */
+.btn-primary, .dropdown-item,.main-title:after, .btn-toggler i,.leftmenu li a {background-color:#0168b3;}
+
+.overlay:before {background-color: rgba(2,24,80,0.8);}
+.PackageSearchForm {background-color: rgba(2,24,80,0.1);}
+.tblPackageSearchResult .package--active {background-color: rgba(2,24,80,0.15);}
+
+/* Border Color */
+.btn-primary, .dropdown-item, .r-detail-tabs .nav-link.active, .r-detail-tabs .nav-item.show .nav-link {border-color:#0168b3;}
+
+.leftmenu li.active a:before {border-left-color:#0168b3;}
+
+@media(max-width:991px) {
+    .navbar-nav .dropdown-menu .dropdown-item {color:#0168b3;}
+    .navbar .navbar-collapse {background-color:#0168b3;}
+}
+@media(max-width:767px) {
+    #header .lang a.active {background-color:#0168b3;}
+}
+@media(min-width:992px) {
+   .navbar-nav .nav-link:hover, .navbar-nav .nav-link.active {border-color:#0168b3;}
+}
+
+
+
+
+/*  TEXT SELECTION COLOR & CHROME SCROLLBAR
+================================================================================================================================== */
+::selection {color: #ffffff;background-color: #0168b3;}
+::-moz-selection {color: #ffffff;background-color: #0168b3;}
+::-webkit-scrollbar-track {background-color: #eeeeee;}
+::-webkit-scrollbar{width: 10px;height: 10px;}
+::-webkit-scrollbar-thumb {cursor: pointer;background: #0168b3;border-radius: 0;}

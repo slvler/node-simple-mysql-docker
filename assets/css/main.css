@@ -1,0 +1,34 @@
+/**======================================
+*    EGEGEN
+*    https://www.egegen.com   
+*    
+*    @Company       : Deniz Atı
+*    @Created on    : 25.Aralik.2019
+*    @Author        : Ergun C.
+*    @Version       : 0.0.0
+*    @Description   : Projeye özgü yazılan kodlar burada bulunmaktadır. 
+**======================================*/
+
+@charset "utf-8";
+
+/*=====================================
+* PLUGINS
+=====================================*/
+@import url("../plugins/fontawesome/5.9.0/css/all.min.css");
+@import url("../plugins/bootstrap/4.4.1/css/bootstrap.css");
+@import url("../plugins/fancybox/dist/jquery.fancybox.min.css");
+@import url("../plugins/slick/1.8.0/slick.css");
+@import url("../plugins/slick/1.8.0/slick-theme.css");
+@import url("../plugins/datepicker/css/bootstrap-datepicker.css");
+
+/*=====================================
+* GRID, LAYOUT AND UTILITIES
+=====================================*/
+@import url("layout.css");
+@import url("utilities.css");
+
+/*=====================================
+* CUSTOM STYLE
+=====================================*/
+@import url("custom.css");
+@import url("color.css");
