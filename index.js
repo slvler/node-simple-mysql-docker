@@ -11,6 +11,7 @@ const {
 
 // router
 const auth = require("./routes/auth.js");
+const category = require("./routes/category.js");
 
 // const connection = mysql.createPool({
 //   connectionLimit: 10,
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1/auth", auth);
+app.use("/api/v1/category", category);
 
 
 

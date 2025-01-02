@@ -6,6 +6,7 @@ services:
     ports:
       - "3000:3000"
       - "4000:4000"
+    restart: always
     volumes:
       - ./:/app
       - /app/node_modules
@@ -46,7 +47,15 @@ services:
     networks:
       - nodejs
 
+  redis_service:
+    image: "redis:alpine"
+    container_name: redis_service
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - nodejs
+
 networks:
   nodejs:
-    name: nodejs
     driver: bridge
