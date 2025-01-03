@@ -1,16 +1,13 @@
 const Database = require("../database/db");
 const Redis = require("ioredis");
-const {checkPassword} = require("../utils/helper");
-const jwt = require("jsonwebtoken");
-const {JWT_SECRET, NODE_ENV} = require("../config/config");
-const { storeValidation, updateValidation } = require("../validation/categoryValidation.js");
-const slugify = require('slugify')
 const EventEmitter = require('events');
+const { storeValidation, updateValidation } = require("../validation/blogValidation.js");
 
-const eventEmitter = new EventEmitter()
 
+const eventEmitter = new EventEmitter();
 
-const index = async (req, res) => {
+const index = async(req, res) => {
+
     const dbInstance = Database.getInstance();
     const connection = await dbInstance.connect();
 
@@ -19,68 +16,27 @@ const index = async (req, res) => {
         host: "redis_service",
     });
 
-    try {
-        const redisKey = 'category:all';
-        const cachedData = await redisClient.get(redisKey);
-        if (cachedData) {
-            console.log("Data fetched from Redis cache");
-            return res.json({
-                status: true,
-                data: JSON.parse(cachedData),
-                message: "Category listed from cache"
-            });
-        }
-        let sql = "SELECT * FROM categories";
-        connection.query(sql, async (err, rows) => {
-            if (err) throw err;
-
-            await redisClient.set(redisKey, JSON.stringify(rows), 'EX', 3600);
-
-            return res.json({
-                status: true,
-                data: rows,
-                message: "Category listed successfully"
-            });
-
-        });
-
-    } catch (error) {
-        console.error("Error connecting to Redis:", error);
-        return res.status(500).json({
-            status: false,
-            message: "Internal Server Error",
-            mes: error
-        });
-    }
-}
-const show = async (req, res) => {
-    const dbInstance = Database.getInstance();
-    const connection = await dbInstance.connect();
-    const redisClient = new Redis({
-        port: 6379,
-        host: "redis_service",
-    });
-    const id = req.params.id;
     try{
-        const redisKey = `category:show:${id}`;
+        const redisKey = 'blogs:all';
         const cachedData = await redisClient.get(redisKey);
         if (cachedData) {
             console.log("Data fetched from Redis cache");
             return res.json({
                 status: true,
                 data: JSON.parse(cachedData),
-                message: "Category show from cache"
+                message: "blog listed from cache"
             });
         }
-        let sql = `SELECT * FROM categories WHERE id = ?`;
-        connection.query(sql, id, async (err, rows) => {
+
+        let sql = "SELECT * FROM blogs INNER JOIN categories on blogs.category_id = categories.id";
+        connection.query(sql, async(err, rows) => {
             if (err) throw err;
             if (rows.length){
                 await redisClient.set(redisKey, JSON.stringify(rows), 'EX', 3600);
                 return res.json({
                     status: true,
                     data: rows,
-                    message: "Category show successfully"
+                    message: "Blog list successfully"
                 });
             }else{
                 return res.json({
@@ -98,6 +54,55 @@ const show = async (req, res) => {
         });
     }
 }
+
+const show = async(req, res) => {
+
+    const dbInstance = Database.getInstance();
+    const connection = await dbInstance.connect();
+    const redisClient = new Redis({
+        port: 6379,
+        host: "redis_service",
+    });
+    const id = req.params.id;
+    try{
+        const redisKey = `category:show:${id}`;
+        const cachedData = await redisClient.get(redisKey);
+        if (cachedData) {
+            console.log("Data fetched from Redis cache");
+            return res.json({
+                status: true,
+                data: JSON.parse(cachedData),
+                message: "Blog show from cache"
+            });
+        }
+        let sql = `SELECT * FROM blogs WHERE id = ?`;
+        connection.query(sql, id, async (err, rows) => {
+            if (err) throw err;
+            if (rows.length){
+                await redisClient.set(redisKey, JSON.stringify(rows), 'EX', 3600);
+                return res.json({
+                    status: true,
+                    data: rows,
+                    message: "Blog show successfully"
+                });
+            }else{
+                return res.json({
+                    status: false,
+                    message: "Invalid credentials",
+                });
+            }
+        });
+    } catch (error) {
+        console.error("Error connecting to Redis:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Internal Server Error",
+            mes: error
+        });
+    }
+
+}
+
 const store = async (req, res) => {
 
     const { error, value } = storeValidation.validate(req.body);
@@ -108,44 +113,42 @@ const store = async (req, res) => {
             message: error.details[0].message,
         });
     }
+    const { title, content, category_id, status } = req.body;
+    let sql = "INSERT INTO blogs (title, content, category_id, status)VALUE (?,?,?,?)"
 
-  try{
-      const dbInstance = Database.getInstance();
-      const connection = await dbInstance.connect();
+    const dbInstance = Database.getInstance();
+    const connection = await dbInstance.connect();
 
-      const { name, description } = req.body;
-      let slugTxt = slugify(name);
+    connection.query(sql, [
+        title,
+        content,
+        category_id,
+        status
+    ], (err, rows) => {
 
-      let insert = "INSERT INTO categories (name, description, slug, status)VALUE (?, ?, ?, ?)";
+        if (err) throw err;
+        if (rows.affectedRows > 0) {
 
-      connection.query(insert, [
-          name,
-          description,
-          slugTxt,
-          "PASSIVE"
-      ], (err, rows) => {
-          if (err) throw err;
+            eventEmitter.on('blog-cached', blogCache);
+            eventEmitter.emit('blog-cached');
 
-          eventEmitter.on('category-cached', categoryCache);
-          eventEmitter.emit('category-cached');
+            res.json({
+                success: true,
+                message: "blog store successful"
+            });
+        }else{
+            res.json({
+                success: true,
+                message: "blog store failed"
+            });
+        }
+    });
 
-          res.json({
-              success: true,
-              message: "category create successful"
-          });
-      });
-  } catch (error) {
-      console.error("Error connecting to Redis:", error);
-      return res.status(500).json({
-          status: false,
-          message: "Internal Server Error",
-          mes: error
-      });
-  }
 }
 
-const update = async (req, res) => {
-    const { error, value } = updateValidation.validate(req.body);
+const update = async(req, res) => {
+
+    const { error , value } = updateValidation.validate(req.body);
 
     if (error) {
         return res.status(401).json({
@@ -154,87 +157,96 @@ const update = async (req, res) => {
         });
     }
 
-    let id = req.params.id;
-    const { name, description, status } = req.body;
-    let slugTxt = slugify(name);
+    try {
+        const id = req.params.id;
+        const { title, content, category_id, status } = req.body;
 
-    let sql = "UPDATE categories SET name = ?, description = ?, slug = ?, status = ? where id = ?";
+        let sql = "UPDATE blogs SET title=?, content=?, category_id=?, status=? where id=?"
 
-    const dbInstance = Database.getInstance();
-    const connection = await dbInstance.connect();
+        const dbInstance = Database.getInstance();
+        const connection = await dbInstance.connect();
 
-    connection.query(sql, [
-        name,
-        description,
-        slugTxt,
-        status,
-        id
-    ], async(err, rows) => {
-        if (err) throw err;
+        connection.query(sql, [
+            title,
+            content,
+            category_id,
+            status,
+            id
+        ], async(err, rows) => {
 
-        eventEmitter.on('category-cached', categoryCache);
-        eventEmitter.emit('category-cached');
+            if (err) throw err;
+            if (rows.affectedRows > 0) {
 
-        if (rows.affectedRows > 0) {
-            res.json({
-                success: true,
-                message: "category update successful"
-            });
-        }else{
-            res.json({
-                success: true,
-                message: "category update failed"
-            });
-        }
-    })
-};
+                eventEmitter.on('blog-cached', blogCache);
+                eventEmitter.emit('blog-cached');
+
+
+                res.json({
+                    success: true,
+                    message: "blog update successful"
+                });
+            }else{
+                res.json({
+                    success: true,
+                    message: "blog update failed"
+                });
+            }
+        })
+    } catch (error) {
+        console.error("Error connecting to Redis:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Internal Server Error",
+            mes: error
+        });
+    }
+}
 
 const destroy = async (req, res) => {
     let id = req.params.id;
-    let sql = "DELETE FROM categories where id = ?"
+    let sql = "DELETE FROM blogs where id = ?"
 
     const dbInstance = Database.getInstance();
     const connection = await dbInstance.connect();
     connection.query(sql, id, (err, rows) => {
         if (err) throw err;
-
-        eventEmitter.on('category-cached', categoryCache);
-        eventEmitter.emit('category-cached');
-
         if (rows.affectedRows > 0) {
+
+            eventEmitter.on('blog-cached', blogCache);
+            eventEmitter.emit('blog-cached');
             res.json({
                 success: true,
-                message: "category delete successful"
+                message: "blog delete successful"
             });
         }else{
             res.json({
                 success: true,
-                message: "category delete failed"
+                message: "blog delete failed"
             });
         }
     });
-};
+}
 
-
-const categoryCache = async () => {
-    const redisKey = 'category:all';
+const blogCache = async () => {
+    const redisKey = 'blogs:all';
     const dbInstance = Database.getInstance();
     const connection = await dbInstance.connect();
     const redisClient = new Redis({
         port: 6379,
         host: "redis_service",
     });
-    let sql = "SELECT * FROM categories";
+    let sql = "SELECT * FROM blogs INNER JOIN categories on blogs.category_id = categories.id";
     connection.query(sql, async(err, rows) => {
         if (err) throw err;
         if (rows.length){
             await redisClient.set(redisKey, JSON.stringify(rows), 'EX', 3600);
-            console.log("category cached successful");
+            console.log("blog cached successful");
         }else{
-            console.log("category list failed successful");
+            console.log("blog list failed successful");
         }
     });
 };
+
 
 module.exports = {
     index,
