@@ -6,4 +6,5 @@ docker
 mysql
 redis
 event-listener
+sequelize
 ```
