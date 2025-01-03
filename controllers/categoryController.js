@@ -3,6 +3,10 @@ const Redis = require("ioredis");
 const {checkPassword} = require("../utils/helper");
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET, NODE_ENV} = require("../config/config");
+const { storeValidation } = require("../validation/categoryValidation.js");
+const {loginValidation} = require("../validation/authValidation");
+const slugify = require('slugify')
+
 
 const index = async (req, res) => {
     const dbInstance = Database.getInstance();
@@ -47,7 +51,6 @@ const index = async (req, res) => {
         });
     }
 }
-
 const show = async (req, res) => {
     const dbInstance = Database.getInstance();
     const connection = await dbInstance.connect();
@@ -93,8 +96,74 @@ const show = async (req, res) => {
         });
     }
 }
+const store = async (req, res) => {
+
+    const { error, value } = storeValidation.validate(req.body);
+
+    if (error) {
+        return res.status(401).json({
+            success: false,
+            message: error.details[0].message,
+        });
+    }
+
+  try{
+      const dbInstance = Database.getInstance();
+      const connection = await dbInstance.connect();
+
+
+      const { name, description } = req.body;
+      let slugTxt = slugify(name)
+
+      let insert = "INSERT INTO categories (name, description, slug, status)VALUE (?, ?, ?, ?)";
+
+      connection.query(insert, [
+          name,
+          description,
+          slugTxt,
+          "PASSIVE"
+      ], (err, rows) => {
+          if (err) throw err;
+          res.json({
+              success: true,
+              message: "category create successful"
+          });
+      });
+  } catch (error) {
+      console.error("Error connecting to Redis:", error);
+      return res.status(500).json({
+          status: false,
+          message: "Internal Server Error",
+          mes: error
+      });
+  }
+
+}
+const destroy = async (req, res) => {
+    let id = req.params.id;
+    let sql = "DELETE FROM categories where id = ?"
+
+    const dbInstance = Database.getInstance();
+    const connection = await dbInstance.connect();
+    connection.query(sql, id, (err, rows) => {
+        if (err) throw err;
+        if (rows.affectedRows > 0) {
+            res.json({
+                success: true,
+                message: "category delete successful"
+            });
+        }else{
+            res.json({
+                success: true,
+                message: "category delete failed"
+            });
+        }
+    });
+}
 
 module.exports = {
     index,
-    show
+    show,
+    store,
+    destroy
 }

@@ -70,7 +70,6 @@ const login = async (req, res) => {
 
   });
 };
-
 const register = async (req, res) => {
   const { error, value } = registerValidation.validate(req.body);
 
