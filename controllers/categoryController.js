@@ -3,7 +3,7 @@ const Redis = require("ioredis");
 const {checkPassword} = require("../utils/helper");
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET, NODE_ENV} = require("../config/config");
-const { storeValidation } = require("../validation/categoryValidation.js");
+const { storeValidation, updateValidation } = require("../validation/categoryValidation.js");
 const {loginValidation} = require("../validation/authValidation");
 const slugify = require('slugify')
 
@@ -137,8 +137,53 @@ const store = async (req, res) => {
           mes: error
       });
   }
-
 }
+
+const update = async (req, res) => {
+
+
+    const { error, value } = updateValidation.validate(req.body);
+
+    if (error) {
+        return res.status(401).json({
+            success: false,
+            message: error.details[0].message,
+        });
+    }
+
+    let id = req.params.id;
+    const { name, description, status } = req.body;
+    let slugTxt = slugify(name)
+
+    let sql = "UPDATE categories SET name = ?, description = ?, slug = ?, status = ? where id = ?";
+
+    const dbInstance = Database.getInstance();
+    const connection = await dbInstance.connect();
+
+    connection.query(sql, [
+        name,
+        description,
+        slugTxt,
+        status,
+        id
+    ], async(err, rows) => {
+
+        if (err) throw err;
+        if (rows.affectedRows > 0) {
+            res.json({
+                success: true,
+                message: "category update successful"
+            });
+        }else{
+            res.json({
+                success: true,
+                message: "category update failed"
+            });
+        }
+    })
+
+
+};
 const destroy = async (req, res) => {
     let id = req.params.id;
     let sql = "DELETE FROM categories where id = ?"
@@ -165,5 +210,6 @@ module.exports = {
     index,
     show,
     store,
+    update,
     destroy
 }
