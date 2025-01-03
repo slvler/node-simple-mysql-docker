@@ -4,7 +4,7 @@ const {
 } = require("../validation/authValidation");
 const Database = require("../database/db.js");
 const { doHash, checkPassword } = require("../utils/helper.js");
-const { SALT, JWT_SECRET, NODE_ENV } = require("../config/config.js");
+const { SALT, JWT_SECRET, NODE_ENV } = require("../config/config1.js");
 const jwt = require("jsonwebtoken");
 
 const login = async (req, res) => {

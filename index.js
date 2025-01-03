@@ -7,7 +7,7 @@ const {
   DB_DATABASE,
   DB_USERNAME,
   DB_PASSWORD,
-} = require("./config/config.js");
+} = require("./config/config1.js");
 
 // router
 const auth = require("./routes/auth.js");
