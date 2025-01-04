@@ -14,6 +14,7 @@ const auth = require("./routes/auth.js");
 const category = require("./routes/category.js");
 const blog = require("./routes/blog.js");
 const product = require("./routes/product.js");
+const sub_product = require("./routes/sub-product.js");
 
 // const connection = mysql.createPool({
 //   connectionLimit: 10,
@@ -32,6 +33,7 @@ app.use("/api/v1/auth", auth);
 app.use("/api/v1/category", category);
 app.use("/api/v1/blog", blog);
 app.use("/api/v1/product", product);
+app.use("/api/v1/sub-product", sub_product);
 
 
 
