@@ -1,15 +1,15 @@
-
 const sequelize = require('../database/sequelize.js');
 // const Product = require('../models/Product.js');
 // const News = require('../models/News.js');
 // const Newspaper = require("../models/newspaper.js");
 // const { Newspaper } = require('../models');
-const { SubProduct } = require("../models");
+const { SubProduct, Product} = require("../models");
+const {where} = require("sequelize");
 
 const index = async(req, res) => {
-    // const products = await Product.findAll();
-    // const news = await News.findAll();
-    const subProduct = await SubProduct.findAll();
+    const subProduct = await SubProduct.findAll({
+        include: Product
+    });
 
     return res.json({
         status: true,
@@ -22,6 +22,7 @@ const create  = async(req, res) => {
     //let subProduct = SubProduct.create(req.body);
     const subProduct = await SubProduct.create({
         name: req.body.name,
+        productId: req.body.productId,
         price: req.body.price,
         status: req.body.status
     });
@@ -78,12 +79,29 @@ const update = async (req, res) => {
             message: "sub-product show successfully"
         });
     }
+}
 
+const destroy = async(req, res) => {
+
+    let subProduct = await SubProduct.findByPk(req.params.id);
+    if (subProduct === null) {
+        return res.json({
+            status: false,
+            message: "no record found",
+        });
+    } else {
+        await subProduct.destroy();
+        return res.json({
+            status: true,
+            message: "sub-product delete successfully"
+        });
+    }
 }
 
 module.exports= {
     index,
     create,
     show,
-    update
+    update,
+    destroy
 }

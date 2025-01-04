@@ -1,27 +1,20 @@
 'use strict';
 const {DataTypes} = require("sequelize");
-const {models} = require("mongoose");
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('SubProducts', {
+    await queryInterface.createTable('Products', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      productId: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Products',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-      },
       name: {
         type: Sequelize.STRING
+      },
+      content: {
+        type: Sequelize.TEXT
       },
       price: {
         type: Sequelize.INTEGER
@@ -42,6 +35,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('SubProducts');
+    await queryInterface.dropTable('Products');
   }
 };
